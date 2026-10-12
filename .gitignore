@@ -1,0 +1,3 @@
+# Generated authentication material. A kubeconfig here contains a bearer token.
+kubeconfigs/*
+!kubeconfigs/.gitkeep

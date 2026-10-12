@@ -1,0 +1,80 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: set-person-label-by-namespace
+  annotations:
+    policies.kyverno.io/title: Set person label by namespace
+    policies.kyverno.io/category: Metadata
+    policies.kyverno.io/severity: low
+    policies.kyverno.io/subject: Pod
+    policies.kyverno.io/description: >-
+      Sets the person label to student or mentor in the lab namespaces and
+      removes that label from Pods admitted in every other namespace.
+spec:
+  # Mutations occur during CREATE and UPDATE. Existing Pods are not changed.
+  background: false
+  emitWarning: true
+  rules:
+    - name: label-student-pods
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - student01
+                - student02
+                - student03
+              operations:
+                - CREATE
+                - UPDATE
+      mutate:
+        # No +(key) anchor: the required value replaces a user-supplied value.
+        patchStrategicMerge:
+          metadata:
+            labels:
+              person: student
+    - name: label-mentor-pods
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - mentor
+              operations:
+                - CREATE
+                - UPDATE
+      mutate:
+        patchStrategicMerge:
+          metadata:
+            labels:
+              person: mentor
+    - name: remove-person-label-outside-lab-namespaces
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              operations:
+                - CREATE
+                - UPDATE
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - mentor
+                - student01
+                - student02
+                - student03
+      # A JSON Patch remove operation fails if the key is absent. Run it only
+      # when the incoming Pod actually has metadata.labels.person.
+      preconditions:
+        all:
+          - key: person
+            operator: AnyIn
+            value: "{{ keys(request.object.metadata.labels || `{}`) }}"
+      mutate:
+        patchesJson6902: |-
+          - op: remove
+            path: /metadata/labels/person

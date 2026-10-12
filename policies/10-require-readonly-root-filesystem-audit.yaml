@@ -1,0 +1,48 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-readonly-root-filesystem
+  annotations:
+    policies.kyverno.io/title: Require read-only root filesystem
+    policies.kyverno.io/category: Pod Security
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Pod
+    policies.kyverno.io/description: >-
+      Reports, without blocking, workload containers that can write to their
+      root filesystem in a Module 02 lab namespace.
+spec:
+  # Evaluate existing Pods too, so violations appear in PolicyReports.
+  background: true
+  # Surface an API warning at CREATE or UPDATE while still allowing the Pod.
+  emitWarning: true
+  rules:
+    - name: check-readonly-root-filesystem
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - mentor
+                - student01
+                - student02
+                - student03
+      validate:
+        # Audit records a failure in a PolicyReport but never rejects the request.
+        failureAction: Audit
+        message: >-
+          Every container, initContainer, and ephemeralContainer must set
+          securityContext.readOnlyRootFilesystem to true.
+        foreach:
+          - list: request.object.spec.containers
+            pattern:
+              securityContext:
+                readOnlyRootFilesystem: true
+          - list: request.object.spec.initContainers
+            pattern:
+              securityContext:
+                readOnlyRootFilesystem: true
+          - list: request.object.spec.ephemeralContainers
+            pattern:
+              securityContext:
+                readOnlyRootFilesystem: true
