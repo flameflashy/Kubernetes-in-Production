@@ -13,8 +13,8 @@ The lab cluster is a single-control-plane Kind cluster named `kuber-in-prod`. It
 
 The cluster configuration is declared in `manifests/`.
 
-- `00-namespaces.yaml` creates `mentor`, `student01`, `student02`, and `student03`.
-- `10-rbac.yaml` creates a ServiceAccount for each identity, the reusable `lab-app-rw` and `lab-app-readonly` ClusterRoles, and namespace-scoped RoleBindings.
+- `namespaces.yaml` creates `mentor`, `student01`, `student02`, and `student03`.
+- `rbac.yaml` creates a ServiceAccount for each identity, the reusable `lab-app-rw` and `lab-app-readonly` ClusterRoles, and namespace-scoped RoleBindings.
 - `20-service-account-tokens.yaml` declares one manually managed ServiceAccount token Secret for each identity. The manifest contains no token; Kubernetes fills the token only after the Secret is applied.
 
 `ClusterRole` is used only as a reusable set of permission rules. Every grant is made through a `RoleBinding`, so its scope is the binding namespace rather than the entire cluster.
@@ -56,8 +56,8 @@ Short-lived tokens are preferred operationally, but each kubeconfig would need p
 ## Apply and verify
 
 ```bash
-kubectl apply -f manifests/00-namespaces.yaml
-kubectl apply -f manifests/10-rbac.yaml
+kubectl apply -f manifests/namespaces.yaml
+kubectl apply -f manifests/rbac.yaml
 kubectl apply -f manifests/20-service-account-tokens.yaml
 bash scripts/generate-kubeconfigs.sh
 ```

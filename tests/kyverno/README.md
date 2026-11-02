@@ -1,10 +1,10 @@
 # Kyverno manual checks
 
-Apply the policies only after Kyverno is installed and its Pods are ready. These tests are intentionally not part of the normal manifests because they create Pods in the cluster.
+Run the tests only after the Argo CD applications `kyverno` and `lab-policies`
+are `Synced` and `Healthy`. These tests are intentionally not part of GitOps
+because they create deliberately non-compliant Pods in the cluster.
 
 ```bash
-kubectl apply -f policies/10-require-readonly-root-filesystem-audit.yaml
-kubectl apply -f policies/20-mutate-person-label.yaml
 kubectl apply -f tests/kyverno/01-student-audit-failure.yaml
 kubectl apply -f tests/kyverno/02-mentor-label-overwrite.yaml
 kubectl apply -f tests/kyverno/03-default-label-removal.yaml

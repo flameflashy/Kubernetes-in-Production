@@ -31,3 +31,5 @@ The lab-namespace rules overwrite a conflicting submitted `person` value. The no
 - The audit policy can later be widened by removing the `namespaces` filter once system workload exceptions are understood.
 - Workload authors can see warnings and report failures before the policy is promoted to `Enforce`.
 - The label policy applies to direct Pods; Kyverno's Pod-controller auto-generation also applies compatible Pod rules to workload templates.
+- Since Module 03, both policies are rendered from `charts/lab-policies`; their
+  namespace scope and enforcement mode are configured in the chart values.

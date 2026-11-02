@@ -1,0 +1,9 @@
+apiVersion: v2
+name: lab-policies
+description: Kyverno policies for the Kubernetes in Production course lab
+type: application
+version: 0.1.0
+appVersion: "1.0"
+annotations:
+  artifacthub.io/category: security
+  artifacthub.io/license: MIT

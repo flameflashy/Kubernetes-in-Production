@@ -1,0 +1,26 @@
+policies:
+  readonlyRootFilesystem:
+    enabled: true
+    # Audit reports violations without rejecting a workload. Change to Enforce
+    # only after reports have been reviewed and workloads have been fixed.
+    failureAction: Audit
+    background: true
+    emitWarning: true
+    namespaces:
+      - mentor
+      - student01
+      - student02
+      - student03
+
+  personLabel:
+    enabled: true
+    background: false
+    emitWarning: true
+    labelKey: person
+    studentValue: student
+    mentorValue: mentor
+    studentNamespaces:
+      - student01
+      - student02
+      - student03
+    mentorNamespace: mentor
