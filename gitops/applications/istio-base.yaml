@@ -18,9 +18,6 @@ spec:
       releaseName: istio-base
       valuesObject:
         defaultRevision: default
-        base:
-          # Required by Istio when a GitOps controller uses server-side apply.
-          validationFailurePolicy: Fail
   destination:
     server: https://kubernetes.default.svc
     namespace: istio-system

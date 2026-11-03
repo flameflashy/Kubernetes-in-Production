@@ -17,6 +17,10 @@ spec:
     helm:
       releaseName: istiod
       valuesObject:
+        base:
+          # Keep the rendered webhook equal to the strict live state selected
+          # by istiod after startup when a GitOps controller uses SSA.
+          validationFailurePolicy: Fail
         pilot:
           # One replica is sufficient for a local single-node Kind lab.
           autoscaleEnabled: false
