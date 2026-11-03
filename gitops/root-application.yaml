@@ -11,7 +11,7 @@ spec:
     repoURL: https://github.com/flameflashy/Kubernetes-in-Production.git
     # The lab follows its remote branch while it is being tested. Change this
     # to main after the pull request is merged.
-    targetRevision: lab2
+    targetRevision: lab3
     path: gitops/applications
     directory:
       recurse: true
