@@ -1,5 +1,9 @@
+{{- if and .Values.policies.istioSidecar.enabled (not .Values.policies.personLabel.enabled) }}
+{{- fail "policies.personLabel must be enabled when policies.istioSidecar is enabled" }}
+{{- end }}
 {{- if .Values.policies.personLabel.enabled }}
 {{- $policy := .Values.policies.personLabel }}
+{{- $istioPolicy := .Values.policies.istioSidecar }}
 {{- if has $policy.mentorNamespace $policy.studentNamespaces }}
 {{- fail "policies.personLabel.mentorNamespace must not also appear in studentNamespaces" }}
 {{- end }}
@@ -13,13 +17,14 @@ metadata:
     app.kubernetes.io/part-of: lab-policies
   annotations:
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
-    policies.kyverno.io/title: Set person label by namespace
-    policies.kyverno.io/category: Metadata
+    policies.kyverno.io/title: Set person label and enable the student mesh
+    policies.kyverno.io/category: Metadata, Service Mesh
     policies.kyverno.io/severity: low
     policies.kyverno.io/subject: Pod
     policies.kyverno.io/description: >-
-      Sets the configured identity label in lab namespaces and removes it from
-      Pods admitted in every other namespace.
+      Sets the configured identity label in lab namespaces, removes it from
+      Pods admitted elsewhere, and opts student Pods into Istio sidecar
+      injection.
 spec:
   background: {{ $policy.background }}
   emitWarning: {{ $policy.emitWarning }}
@@ -79,4 +84,25 @@ spec:
         patchesJson6902: |-
           - op: remove
             path: /metadata/labels/{{ $policy.labelKey }}
+{{- if $istioPolicy.enabled }}
+    # This rule is deliberately last. It evaluates the final person label
+    # produced by the preceding rules and then opts student Pods into Istio.
+    - name: enable-istio-sidecar-for-students
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              selector:
+                matchLabels:
+                  {{ $policy.labelKey }}: {{ $policy.studentValue | quote }}
+              operations:
+                - CREATE
+                - UPDATE
+      mutate:
+        patchStrategicMerge:
+          metadata:
+            labels:
+              {{ $istioPolicy.injectionLabel }}: {{ $istioPolicy.injectionValue | quote }}
+{{- end }}
 {{- end }}

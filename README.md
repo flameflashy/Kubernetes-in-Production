@@ -26,9 +26,8 @@ The initial lab infrastructure is declared under `manifests/`:
 - Automated synchronization, self-healing, and pruning are enabled.
 - Test Pods verify the Audit and mutation policies.
 
-During testing, the applications track the remote `lab2` branch. After the pull
-request is merged, change `targetRevision` to `main` in
-`gitops/root-application.yaml` and `gitops/applications/lab-policies.yaml`.
+During active lab development, the applications track the corresponding remote
+lab branch. After the pull request is merged, change `targetRevision` to `main`.
 
 ### Result
 
@@ -41,6 +40,31 @@ After bootstrap, Argo CD installs Kyverno and applies two policies:
 
 Changes in Git are synchronized with the cluster automatically. Argo CD repairs
 manual drift and removes resources that have been deleted from Git.
+
+## Module 04 — Service Mesh
+
+### Assignment
+
+1. Install Istio service mesh in sidecar mode.
+2. Use a Kyverno policy to inject an Istio sidecar into every Pod labeled
+   `person=student`.
+
+### Implementation
+
+- Argo CD installs the pinned Istio `base` and `istiod` Helm charts at version
+  `1.31.3`.
+- Namespace-wide injection remains disabled.
+- The Kyverno person-label policy adds `sidecar.istio.io/inject=true` after it
+  determines that the final `person` value is `student`.
+- Istio's admission webhook injects the `istio-proxy` container.
+- Ambient components and an ingress gateway are not installed because they are
+  outside this lab's scope.
+
+During Module 04 development, the root and local chart Applications track the
+remote `lab3` branch.
+
+Manual verification is documented in
+[`tests/istio/README.md`](tests/istio/README.md).
 
 ## Makefile usage
 
@@ -55,11 +79,8 @@ sudo apt update && sudo apt install -y make
 The branch must be available on GitHub before bootstrap:
 
 ```bash
-git push -u origin lab2
+git push -u origin lab3
 make bootstrap
-make wait
-make status
-make test
 ```
 
 Available commands:
@@ -67,16 +88,34 @@ Available commands:
 | Command | Purpose |
 | --- | --- |
 | `make help` | show all available commands |
-| `make validate` | lint and render the Helm chart |
 | `make cluster-up` | create the `kuber-in-prod` Kind cluster |
-| `make bootstrap` | apply Module 02 and install Argo CD/GitOps |
-| `make wait` | wait for the Synced and Healthy states |
-| `make status` | show Applications, Pods, and policies |
-| `make test` | apply the test Pods and show PolicyReports |
-| `make test-clean` | delete the test Pods |
-| `make argocd-password` | show the initial password for the `admin` user |
-| `make port-forward` | expose the UI at `https://localhost:8080` |
+| `make platform-infra` | apply namespaces, RBAC, and token Secrets |
+| `make argocd-install` | install or upgrade Argo CD |
+| `make gitops-apply` | apply the root Argo CD Application |
+| `make bootstrap` | create the cluster and bootstrap the complete platform |
 | `make cluster-down` | delete the Kind cluster |
+
+All observation and validation steps are intentionally manual. After bootstrap,
+inspect the GitOps applications and the Istio control plane with:
+
+```bash
+kubectl --context kind-kuber-in-prod get applications -n argocd
+kubectl --context kind-kuber-in-prod get pods -n istio-system
+kubectl --context kind-kuber-in-prod get clusterpolicies
+```
+
+To open the Argo CD UI, run the port-forward in one terminal:
+
+```bash
+kubectl --context kind-kuber-in-prod port-forward service/argocd-server -n argocd 8080:443
+```
+
+Read the initial `admin` password in another terminal:
+
+```bash
+kubectl --context kind-kuber-in-prod get secret argocd-initial-admin-secret \
+  -n argocd -o jsonpath='{.data.password}' | base64 -d; echo
+```
 
 The cluster name and timeout can be overridden:
 
@@ -84,4 +123,4 @@ The cluster name and timeout can be overridden:
 make cluster-up CLUSTER_NAME=my-lab TIMEOUT=15m
 ```
 
-The key decisions are documented in [ADR 0001](docs/adr/0001-kind-rbac-service-account-access.md), [ADR 0002](docs/adr/0002-kyverno-policy-scope.md), and [ADR 0003](docs/adr/0003-argocd-helm-gitops.md).
+The key decisions are documented in [ADR 0001](docs/adr/0001-kind-rbac-service-account-access.md), [ADR 0002](docs/adr/0002-kyverno-policy-scope.md), [ADR 0003](docs/adr/0003-argocd-helm-gitops.md), and [ADR 0004](docs/adr/0004-istio-sidecar-injection.md).

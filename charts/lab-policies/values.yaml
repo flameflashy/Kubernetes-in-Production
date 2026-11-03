@@ -24,3 +24,8 @@ policies:
       - student02
       - student03
     mentorNamespace: mentor
+
+  istioSidecar:
+    enabled: true
+    injectionLabel: sidecar.istio.io/inject
+    injectionValue: "true"

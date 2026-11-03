@@ -21,7 +21,9 @@ Expected results:
 Inspect results:
 
 ```bash
-kubectl get pods -n student01,mentor,default --show-labels
+kubectl get pods -n student01 --show-labels
+kubectl get pods -n mentor --show-labels
+kubectl get pods -n default --show-labels
 kubectl get policyreport -A
 kubectl describe policyreport -n student01
 ```

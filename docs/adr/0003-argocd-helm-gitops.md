@@ -13,8 +13,8 @@ the deployment flow should still model production practices.
 ## Decision
 
 Use Argo CD with the app-of-apps pattern. During lab validation, a root
-Application tracks `gitops/applications` on the remote `lab2` branch and
-creates two child Applications:
+Application tracks `gitops/applications` on the current remote lab branch and
+creates child Applications:
 
 1. the pinned upstream Kyverno chart;
 2. the repository-local `charts/lab-policies` chart.
@@ -33,8 +33,9 @@ reconcile an empty cluster before it exists.
 
 ## Consequences
 
-- The lab follows `lab2` while it is being tested. Both Application revisions
-  must be changed to `main` after the pull request is merged.
+- The platform follows the current lab branch while it is being tested. Local
+  Application revisions must be changed to `main` after the pull request is
+  merged.
 - Manual cluster changes are treated as drift and reverted.
 - Removing a declared object from Git removes it from the cluster.
 - Kyverno CRDs may not exist during the first policy dry run, so the policy

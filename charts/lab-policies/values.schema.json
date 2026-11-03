@@ -7,7 +7,7 @@
     "policies": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["readonlyRootFilesystem", "personLabel"],
+      "required": ["readonlyRootFilesystem", "personLabel", "istioSidecar"],
       "properties": {
         "readonlyRootFilesystem": {
           "type": "object",
@@ -44,6 +44,22 @@
               "items": { "type": "string", "minLength": 1 }
             },
             "mentorNamespace": { "type": "string", "minLength": 1 }
+          }
+        },
+        "istioSidecar": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "injectionLabel", "injectionValue"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "injectionLabel": {
+              "type": "string",
+              "const": "sidecar.istio.io/inject"
+            },
+            "injectionValue": {
+              "type": "string",
+              "const": "true"
+            }
           }
         }
       }

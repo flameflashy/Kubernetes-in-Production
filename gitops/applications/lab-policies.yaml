@@ -12,7 +12,7 @@ spec:
   source:
     repoURL: https://github.com/flameflashy/Kubernetes-in-Production.git
     # Keep this equal to the root Application revision during lab testing.
-    targetRevision: lab2
+    targetRevision: lab3
     path: charts/lab-policies
     helm:
       releaseName: lab-policies
