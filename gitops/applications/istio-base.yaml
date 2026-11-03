@@ -18,6 +18,10 @@ spec:
       releaseName: istio-base
       valuesObject:
         defaultRevision: default
+        base:
+          # Keep the rendered webhook equal to the strict live state selected
+          # by istiod after startup when a GitOps controller uses SSA.
+          validationFailurePolicy: Fail
   destination:
     server: https://kubernetes.default.svc
     namespace: istio-system
