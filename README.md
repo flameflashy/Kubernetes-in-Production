@@ -93,6 +93,8 @@ Available commands:
 | `make argocd-install` | install or upgrade Argo CD |
 | `make gitops-apply` | apply the root Argo CD Application |
 | `make bootstrap` | create the cluster and bootstrap the complete platform |
+| `make argocd-password` | show the initial Argo CD admin password |
+| `make port-forward` | expose the Argo CD UI at `https://localhost:8080` |
 | `make cluster-down` | delete the Kind cluster |
 
 All observation and validation steps are intentionally manual. After bootstrap,
@@ -107,14 +109,13 @@ kubectl --context kind-kuber-in-prod get clusterpolicies
 To open the Argo CD UI, run the port-forward in one terminal:
 
 ```bash
-kubectl --context kind-kuber-in-prod port-forward service/argocd-server -n argocd 8080:443
+make port-forward
 ```
 
 Read the initial `admin` password in another terminal:
 
 ```bash
-kubectl --context kind-kuber-in-prod get secret argocd-initial-admin-secret \
-  -n argocd -o jsonpath='{.data.password}' | base64 -d; echo
+make argocd-password
 ```
 
 The cluster name and timeout can be overridden:

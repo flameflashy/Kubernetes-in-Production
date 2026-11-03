@@ -9,7 +9,7 @@ TIMEOUT ?= 10m
 KUBECTL := kubectl --context $(KUBE_CONTEXT)
 
 .PHONY: help check-tools cluster-up cluster-down platform-infra \
-	argocd-install gitops-apply bootstrap
+	argocd-install gitops-apply bootstrap argocd-password port-forward
 
 help: ## Show all available commands
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z_-]+:.*## / {printf "%-20s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -48,6 +48,13 @@ gitops-apply: argocd-install ## Create the root Argo CD Application
 
 bootstrap: gitops-apply ## Bootstrap the complete GitOps infrastructure
 	@echo "Bootstrap started. Follow the Applications in the Argo CD UI."
+
+argocd-password: ## Show the initial Argo CD admin password
+	@$(KUBECTL) get secret argocd-initial-admin-secret -n argocd \
+		-o jsonpath='{.data.password}' | base64 -d; echo
+
+port-forward: ## Expose the Argo CD UI at https://localhost:8080
+	$(KUBECTL) port-forward service/argocd-server -n argocd 8080:443
 
 cluster-down: check-tools ## Delete the Kind cluster
 	kind delete cluster --name $(CLUSTER_NAME)
