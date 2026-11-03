@@ -25,9 +25,16 @@ spec:
           # One replica is sufficient for a local single-node Kind lab.
           autoscaleEnabled: false
           replicaCount: 1
+        global:
+          proxy:
+            # The webhook participates in admission for lab namespaces, but
+            # only an explicit Pod label enables injection.
+            autoInject: disabled
         sidecarInjectorWebhook:
-          # Injection is selected per Pod by the Kyverno-added label.
+          # Lab namespaces opt into webhook processing. Reinvocation lets
+          # Istio observe the injection label added later by Kyverno.
           enableNamespacesByDefault: false
+          reinvocationPolicy: IfNeeded
   destination:
     server: https://kubernetes.default.svc
     namespace: istio-system

@@ -53,9 +53,11 @@ manual drift and removes resources that have been deleted from Git.
 
 - Argo CD installs the pinned Istio `base` and `istiod` Helm charts at version
   `1.31.3`.
-- Namespace-wide injection remains disabled.
+- Lab namespaces enable the Istio admission webhook, while Istio's default
+  injection policy remains disabled.
 - The Kyverno person-label policy adds `sidecar.istio.io/inject=true` after it
-  determines that the final `person` value is `student`.
+  determines that the final `person` value is `student`. Istio webhook
+  reinvocation observes that mutation regardless of webhook ordering.
 - Istio's admission webhook injects the `istio-proxy` container.
 - Ambient components and an ingress gateway are not installed because they are
   outside this lab's scope.
