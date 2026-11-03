@@ -1,20 +1,23 @@
+{{- if .Values.policies.readonlyRootFilesystem.enabled }}
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
   name: require-readonly-root-filesystem
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+    app.kubernetes.io/part-of: lab-policies
   annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
     policies.kyverno.io/title: Require read-only root filesystem
     policies.kyverno.io/category: Pod Security
     policies.kyverno.io/severity: medium
     policies.kyverno.io/subject: Pod
     policies.kyverno.io/description: >-
-      Reports, without blocking, workload containers that can write to their
-      root filesystem in a Module 02 lab namespace.
+      Reports or rejects workload containers that can write to their root
+      filesystem in a configured lab namespace.
 spec:
-  # Evaluate existing Pods too, so violations appear in PolicyReports.
-  background: true
-  # Surface an API warning at CREATE or UPDATE while still allowing the Pod.
-  emitWarning: true
+  background: {{ .Values.policies.readonlyRootFilesystem.background }}
+  emitWarning: {{ .Values.policies.readonlyRootFilesystem.emitWarning }}
   rules:
     - name: check-readonly-root-filesystem
       match:
@@ -23,13 +26,9 @@ spec:
               kinds:
                 - Pod
               namespaces:
-                - mentor
-                - student01
-                - student02
-                - student03
+{{- toYaml .Values.policies.readonlyRootFilesystem.namespaces | nindent 16 }}
       validate:
-        # Audit records a failure in a PolicyReport but never rejects the request.
-        failureAction: Audit
+        failureAction: {{ .Values.policies.readonlyRootFilesystem.failureAction }}
         message: >-
           Every container, initContainer, and ephemeralContainer must set
           securityContext.readOnlyRootFilesystem to true.
@@ -46,3 +45,4 @@ spec:
             pattern:
               securityContext:
                 readOnlyRootFilesystem: true
+{{- end }}

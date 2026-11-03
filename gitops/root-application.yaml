@@ -1,0 +1,44 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform-root
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/flameflashy/Kubernetes-in-Production.git
+    # The lab follows its remote branch while it is being tested. Change this
+    # to main after the pull request is merged.
+    targetRevision: lab2
+    path: gitops/applications
+    directory:
+      recurse: true
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+
+  ignoreDifferences:
+    - group: argoproj.io
+      kind: Application
+      jqPathExpressions:
+        - >-
+          .metadata.finalizers[]? |
+          select(. == "pre-delete-finalizer.argocd.argoproj.io"
+          or . == "pre-delete-finalizer.argocd.argoproj.io/cleanup")
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 10
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m

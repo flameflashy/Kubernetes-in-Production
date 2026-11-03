@@ -1,19 +1,28 @@
+{{- if .Values.policies.personLabel.enabled }}
+{{- $policy := .Values.policies.personLabel }}
+{{- if has $policy.mentorNamespace $policy.studentNamespaces }}
+{{- fail "policies.personLabel.mentorNamespace must not also appear in studentNamespaces" }}
+{{- end }}
+{{- $labNamespaces := concat $policy.studentNamespaces (list $policy.mentorNamespace) | uniq }}
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
   name: set-person-label-by-namespace
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+    app.kubernetes.io/part-of: lab-policies
   annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
     policies.kyverno.io/title: Set person label by namespace
     policies.kyverno.io/category: Metadata
     policies.kyverno.io/severity: low
     policies.kyverno.io/subject: Pod
     policies.kyverno.io/description: >-
-      Sets the person label to student or mentor in the lab namespaces and
-      removes that label from Pods admitted in every other namespace.
+      Sets the configured identity label in lab namespaces and removes it from
+      Pods admitted in every other namespace.
 spec:
-  # Mutations occur during CREATE and UPDATE. Existing Pods are not changed.
-  background: false
-  emitWarning: true
+  background: {{ $policy.background }}
+  emitWarning: {{ $policy.emitWarning }}
   rules:
     - name: label-student-pods
       match:
@@ -22,18 +31,15 @@ spec:
               kinds:
                 - Pod
               namespaces:
-                - student01
-                - student02
-                - student03
+{{- toYaml $policy.studentNamespaces | nindent 16 }}
               operations:
                 - CREATE
                 - UPDATE
       mutate:
-        # No +(key) anchor: the required value replaces a user-supplied value.
         patchStrategicMerge:
           metadata:
             labels:
-              person: student
+              {{ $policy.labelKey }}: {{ $policy.studentValue | quote }}
     - name: label-mentor-pods
       match:
         any:
@@ -41,7 +47,7 @@ spec:
               kinds:
                 - Pod
               namespaces:
-                - mentor
+                - {{ $policy.mentorNamespace }}
               operations:
                 - CREATE
                 - UPDATE
@@ -49,7 +55,7 @@ spec:
         patchStrategicMerge:
           metadata:
             labels:
-              person: mentor
+              {{ $policy.labelKey }}: {{ $policy.mentorValue | quote }}
     - name: remove-person-label-outside-lab-namespaces
       match:
         any:
@@ -63,18 +69,14 @@ spec:
         any:
           - resources:
               namespaces:
-                - mentor
-                - student01
-                - student02
-                - student03
-      # A JSON Patch remove operation fails if the key is absent. Run it only
-      # when the incoming Pod actually has metadata.labels.person.
+{{- toYaml $labNamespaces | nindent 16 }}
       preconditions:
         all:
-          - key: person
+          - key: {{ $policy.labelKey }}
             operator: AnyIn
-            value: "{{ keys(request.object.metadata.labels || `{}`) }}"
+            value: {{ printf "%s" "{{ keys(request.object.metadata.labels || `{}`) }}" | quote }}
       mutate:
         patchesJson6902: |-
           - op: remove
-            path: /metadata/labels/person
+            path: /metadata/labels/{{ $policy.labelKey }}
+{{- end }}

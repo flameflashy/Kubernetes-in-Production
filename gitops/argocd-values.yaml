@@ -1,0 +1,14 @@
+# Argo CD is the only component installed imperatively. After bootstrap, it
+# reconciles all applications declared under gitops/applications/.
+dex:
+  enabled: false
+
+notifications:
+  enabled: false
+
+applicationSet:
+  enabled: false
+
+server:
+  service:
+    type: ClusterIP

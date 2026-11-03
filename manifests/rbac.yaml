@@ -235,4 +235,4 @@ subjects:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: lab-app-readonly9*
+  name: lab-app-readonly
