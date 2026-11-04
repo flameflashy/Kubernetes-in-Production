@@ -36,6 +36,14 @@ spec:
           replicas: 1
           persistence:
             enabled: false
+          # The container root filesystem is read-only. Use an ephemeral
+          # writable volume for indexes, chunks, the WAL, and ruler data.
+          extraVolumeMounts:
+            - name: loki-data
+              mountPath: /var/loki
+          extraVolumes:
+            - name: loki-data
+              emptyDir: {}
           resources:
             requests:
               cpu: 50m
