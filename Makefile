@@ -9,7 +9,8 @@ TIMEOUT ?= 10m
 KUBECTL := kubectl --context $(KUBE_CONTEXT)
 
 .PHONY: help check-tools cluster-up cluster-down platform-infra \
-	argocd-install gitops-apply bootstrap argocd-password port-forward
+	argocd-install gitops-apply bootstrap argocd-password port-forward \
+	grafana-password grafana-port-forward
 
 help: ## Show all available commands
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z_-]+:.*## / {printf "%-20s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -55,6 +56,13 @@ argocd-password: ## Show the initial Argo CD admin password
 
 port-forward: ## Expose the Argo CD UI at https://localhost:8080
 	$(KUBECTL) port-forward service/argocd-server -n argocd 8080:443
+
+grafana-password: ## Show the Grafana admin password
+	@$(KUBECTL) get secret monitoring-grafana -n monitoring \
+		-o jsonpath='{.data.admin-password}' | base64 -d; echo
+
+grafana-port-forward: ## Expose the Grafana UI at http://localhost:3000
+	$(KUBECTL) port-forward service/monitoring-grafana -n monitoring 3000:80
 
 cluster-down: check-tools ## Delete the Kind cluster
 	kind delete cluster --name $(CLUSTER_NAME)

@@ -1,0 +1,123 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-student-node-load
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  student-node-load.json: |-
+    {
+      "annotations": {"list": []},
+      "editable": false,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 1,
+      "links": [],
+      "panels": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {
+            "defaults": {"unit": "cores", "min": 0},
+            "overrides": []
+          },
+          "gridPos": {"h": 9, "w": 12, "x": 0, "y": 0},
+          "id": 1,
+          "options": {
+            "legend": {"displayMode": "table", "placement": "bottom", "showLegend": true},
+            "tooltip": {"mode": "multi", "sort": "desc"}
+          },
+          "targets": [
+            {
+              "editorMode": "code",
+              "expr": "sum by (node, namespace) (rate(container_cpu_usage_seconds_total{namespace=~\"student.*\", container!=\"\", container!=\"POD\", image!=\"\"}[$__rate_interval]) * on (namespace, pod) group_left(node) kube_pod_info)",
+              "legendFormat": "{{node}} / {{namespace}}",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Student CPU usage by node and namespace",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {
+            "defaults": {"unit": "bytes", "min": 0},
+            "overrides": []
+          },
+          "gridPos": {"h": 9, "w": 12, "x": 12, "y": 0},
+          "id": 2,
+          "options": {
+            "legend": {"displayMode": "table", "placement": "bottom", "showLegend": true},
+            "tooltip": {"mode": "multi", "sort": "desc"}
+          },
+          "targets": [
+            {
+              "editorMode": "code",
+              "expr": "sum by (node, namespace) (container_memory_working_set_bytes{namespace=~\"student.*\", container!=\"\", container!=\"POD\", image!=\"\"} * on (namespace, pod) group_left(node) kube_pod_info)",
+              "legendFormat": "{{node}} / {{namespace}}",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Student memory usage by node and namespace",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {
+            "defaults": {"unit": "percent", "min": 0, "max": 100},
+            "overrides": []
+          },
+          "gridPos": {"h": 9, "w": 12, "x": 0, "y": 9},
+          "id": 3,
+          "options": {
+            "legend": {"displayMode": "table", "placement": "bottom", "showLegend": true},
+            "tooltip": {"mode": "multi", "sort": "desc"}
+          },
+          "targets": [
+            {
+              "editorMode": "code",
+              "expr": "100 * sum by (node, namespace) (rate(container_cpu_usage_seconds_total{namespace=~\"student.*\", container!=\"\", container!=\"POD\", image!=\"\"}[$__rate_interval]) * on (namespace, pod) group_left(node) kube_pod_info) / on (node) group_left sum by (node) (kube_node_status_allocatable{resource=\"cpu\", unit=\"core\"})",
+              "legendFormat": "{{node}} / {{namespace}}",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Student CPU share of node allocatable capacity",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {
+            "defaults": {"unit": "percent", "min": 0, "max": 100},
+            "overrides": []
+          },
+          "gridPos": {"h": 9, "w": 12, "x": 12, "y": 9},
+          "id": 4,
+          "options": {
+            "legend": {"displayMode": "table", "placement": "bottom", "showLegend": true},
+            "tooltip": {"mode": "multi", "sort": "desc"}
+          },
+          "targets": [
+            {
+              "editorMode": "code",
+              "expr": "100 * sum by (node, namespace) (container_memory_working_set_bytes{namespace=~\"student.*\", container!=\"\", container!=\"POD\", image!=\"\"} * on (namespace, pod) group_left(node) kube_pod_info) / on (node) group_left sum by (node) (kube_node_status_allocatable{resource=\"memory\", unit=\"byte\"})",
+              "legendFormat": "{{node}} / {{namespace}}",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Student memory share of node allocatable capacity",
+          "type": "timeseries"
+        }
+      ],
+      "refresh": "30s",
+      "schemaVersion": 41,
+      "tags": ["lab4", "kubernetes", "students"],
+      "templating": {"list": []},
+      "time": {"from": "now-1h", "to": "now"},
+      "timezone": "browser",
+      "title": "Student Namespace Node Load",
+      "uid": "student-node-load",
+      "version": 1
+    }
