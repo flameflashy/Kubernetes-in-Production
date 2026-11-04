@@ -99,6 +99,23 @@ Loki `7.5.0`, Alloy `1.15.0`, and Policy Reporter `3.11.2`.
 Manual verification is documented in
 [`tests/observability/README.md`](tests/observability/README.md).
 
+### Result
+
+The Grafana dashboard displays CPU and memory load from `student02`, grouped by
+the Kind node and student namespace.
+
+![Student namespace node load dashboard](docs/images/lab4-student-node-load.png)
+
+Policy Reporter sends Kyverno audit failures to Loki. The log dashboard shows
+the affected Pod, namespace, policy rule, and validation message.
+
+![Read-only root filesystem audit dashboard](docs/images/lab4-readonly-rootfs-audit.png)
+
+The provisioned Grafana alert enters the `Firing` state when at least one
+matching failure is present in the five-minute LogQL query window.
+
+![Read-only root filesystem alert firing](docs/images/lab4-readonly-rootfs-alert-firing.png)
+
 ## Makefile usage
 
 The commands are intended for WSL with access to a Docker Engine. They require
